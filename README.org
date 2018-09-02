@@ -1,0 +1,16 @@
+#+TITLE:  Escher's Square Limit
+
+This is an implementation of the result of Peter Henderson's [[https://eprints.soton.ac.uk/257577/1/funcgeo2.pdf][Functional Geometry
+paper]] (2002 version) using my own [[https:github.com/tgetgood/lemonade][vector graphics DSL for clojure]]
+
+* Usage
+
+	In the terminal enter =lein figwheel=, then when it signals ready, go to
+	http://localhost:3449/index.html
+
+* License
+
+	Copyright © 2018 Thomas Getgood
+
+	Distributed under the Eclipse Public License either version 1.0 or (at your
+	option) any later version.
