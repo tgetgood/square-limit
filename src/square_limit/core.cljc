@@ -33,7 +33,7 @@
 (def bottom-left
   (l/rotate top-left [0 -250] -90))
 
-(def fishy
+(def fish
   [top-left
    bottom-left
    top-right
@@ -42,8 +42,18 @@
        (l/scale [250 -250] 0.7071)
        (l/rotate [250 -250] 135))])
 
+(def f2
+  (-> fish
+      (l/scale 0.7071)
+      (l/rotate 45)
+      (l/reflect [0 1])))
+
+(def f3
+  (l/rotate f2 270))
+
+
 (def picture
-  (map #(l/rotate fishy (* % 90)) (range 4)))
+  [fish f2 f3])
 
 (defonce host (hosts/default-host {:fullscreen true}))
 
