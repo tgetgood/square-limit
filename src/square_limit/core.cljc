@@ -18,9 +18,37 @@
                    [(* (inc i) 200) 400]))
           (range count))]))
 
+(def top-left
+  [(assoc l/bezier :to [-5 -100] :c1 [-3 -5] :c2 [-25 -90])
+   (assoc l/bezier :from [-5 -100] :to [-60 -200]
+          :c1 [-9 -105] :c2 [-61 -199])
+   (assoc l/line :from [-60 -200] :to [0 -250])])
+
+(def top-right
+  (-> top-left
+      (l/reflect [0 1])
+      (l/scale 0.7071)
+      (l/rotate 45)))
+
+(def bottom-left
+  (l/rotate top-left [0 -250] -90))
+
+(def fishy
+  [top-left
+   bottom-left
+   top-right
+   (-> bottom-left
+       (l/reflect [250 -250] [ 0 1])
+       (l/scale [250 -250] 0.7071)
+       (l/rotate [250 -250] 135))])
+
+(def picture
+  (map #(l/rotate fishy (* % 90)) (range 4)))
+
+(defonce host (hosts/default-host {:fullscreen true}))
+
 (defn ^:export init []
-  (l/draw! (render @app-db) (hosts/default-host {:fullscreen true})
-   ))
+  (l/draw! (l/translate picture [300 300]) host))
 
 (defn on-reload []
   (init))
