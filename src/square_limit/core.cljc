@@ -1,6 +1,7 @@
 (ns square-limit.core
   (:require [lemonade.core :as l]
             [lemonade.hosts :as hosts]
+            [lemonade.lang :as lang]
             [lemonade.math :as math]))
 
 #?(:cljs (enable-console-print!))
@@ -42,7 +43,7 @@
   [[x y]]
   [(- y) x])
 
-(defn triangluate
+(defn triangulate
   "Given a path, creates a base tile with the appropriate symmetry.
   Path is assumed to begin at the origin, and cover the bottom portion of the
   tiling triangle (goes to the right)."
@@ -61,44 +62,58 @@
          (l/scale left-v 0.7071))
      (l/rotate path 90)]))
 
-(l/deftemplate tile
-  {:base l/line}
-  ;;TODO:
-  (triangluate base)
-  IT
-  (top-left [_]
-    (rotc (second (l/endpoints base))))
-  (bottom-right [_]
-    (second (l/endpoints base))))
+(def r2 (/ 1 (math/sqrt 2)))
 
-(def f (assoc tile :base b2))
+(defn t [shape a b c depth]
+  (if (< 0 depth)
+    (let [o (lang/+ a b c)
+          mid (lang/+ a (lang/* 0.5 (lang/- o a)))
+          diag (lang/- o mid)
+          p2 (lang/+ c a)
+          s1 (-> shape (l/scale p2 r2) (l/rotate p2 -45) (l/reflect mid diag))
+          ;s2 (-> shape (l/scale b r2) (l/rotate b 45) (l/reflect mid diag))
+          ]
+      (println a b c diag mid o)
+      [shape
+       (assoc l/line :style {:stroke :hotpink} :from mid :to o)
+       (assoc l/circle :radius 5 :centre mid)
+       (assoc l/circle :radius 5 :centre o :style {:stroke :none :fill :yellow})
+       (assoc l/circle :radius 5 :centre (lang/+ a b) :style {:stroke :none :fill :green})
+       s1
+       ;; (-> s1 (l/scale o r2) (l/rotate o -45) (l/reflect mid [0 1]))
+       (t s1 mid (lang/- b mid) (lang/- o mid) (dec depth))
+       #_(t s1 mid (lang/- p2 mid) (lang/- o mid) (dec depth))])
+    [])
+  )
 
-(defn rot45
-  "fn from Henderson's paper"
-  [t]
-  (let [p (top-left t)]
-    (-> t
-        (l/scale p 0.7071)
-        (l/rotate p 45))))
+;; (def f (triangulate b2))
 
-(def f2
-  (-> f
-      (rot45)
-      (l/reflect [0 1])
-      (l/translate (bottom-right f))))
+;; (defn rot45
+;;   "fn from Henderson's paper"
+;;   [t]
+;;   (let [p (top-left t)]
+;;     (-> t
+;;         (l/scale p 0.7071)
+;;         (l/rotate p 45))))
 
-(def t
-  [f
-   f2
-   (-> f2
-    (l/rotate 270)
-    (l/translate (top-left f)))])
+;; (def f2
+;;   (-> f
+;;       (rot45)
+;;       (l/reflect [0 1])
+;;       (l/translate (bottom-right f))))
 
-(def u
-  (-> (map #(l/rotate f (* % 90)) (range 4))
-      (l/scale 0.7071)
-      (l/reflect [0 1])
-      (l/rotate 45)))
+;; (def t
+;;   [f
+;;    f2
+;;    (-> f2
+;;     (l/rotate 270)
+;;     (l/translate (top-left f)))])
+
+;; (def u
+;;   (-> (map #(l/rotate f (* % 90)) (range 4))
+;;       (l/scale 0.7071)
+;;       (l/reflect [0 1])
+;;       (l/rotate 45)))
 
 ;; REVIEW: Notice here that we're bleeding together aspects of the shape with
 ;; aspects of the frame. This is because even though f2 is derived geometrically
@@ -106,9 +121,13 @@
 ;; concerned. You can ask a tile for its corners, but when you transform a tile,
 ;; that info gets lost. That's a big problem here.
 
+(def f (triangulate b2))
+
 (def picture
-  [u
-   (l/translate t [165 -30])])
+  [(t f  [0 0] [0 250] [250 0] 5)
+   (l/with-style {:opacity 0.2 :stroke :blue}
+     (t (triangulate (assoc l/line :to [250 0])) [0 0] [0 250] [250 0] 8))
+   ])
 
 
 (defonce host (hosts/default-host {:fullscreen true}))
