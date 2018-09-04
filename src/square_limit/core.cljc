@@ -1,39 +1,11 @@
 (ns square-limit.core
-    (:require [lemonade.core :as l]
-              [lemonade.hosts :as hosts]))
+  (:require [lemonade.core :as l]
+            [lemonade.hosts :as hosts]
+            [lemonade.math :as math]))
 
 #?(:cljs (enable-console-print!))
 
-(defonce app-db (atom {:text "Almost Useless"
-                       :count 3}))
-
-(defn render [state]
-  (let [{:keys [text count]} state]
-    [(-> l/text
-         (assoc :text text)
-         (l/scale 4)
-         (l/translate [250 550]))
-     (map (fn [i] (l/translate
-                   (assoc l/circle :radius 100)
-                   [(* (inc i) 200) 400]))
-          (range count))]))
-
-(def top-left
-  [(assoc l/bezier :to [-5 -100] :c1 [-3 -5] :c2 [-25 -90])
-   (assoc l/bezier :from [-5 -100] :to [-60 -200]
-          :c1 [-9 -105] :c2 [-61 -199])
-   (assoc l/line :from [-60 -200] :to [0 -250])])
-
-(def top-right
-  (-> top-left
-      (l/reflect [0 1])
-      (l/scale 0.7071)
-      (l/rotate 45)))
-
-(def bottom-left
-  (l/rotate top-left [0 -250] -90))
-
-(l/deftemplate path
+(l/deftemplate path*
   {:segments []}
   segments
   l/ISegment
@@ -46,51 +18,97 @@
       (every? (fn [[_ e] [s _]] (= e s))
               (partition 2 (interleave endpoints (rest endpoints)))))))
 
+(defprotocol IT
+  (top-left [_])
+  (bottom-right [_]))
+
+(defn path [segs]
+  (assoc path* :segments segs))
+
 (def base
-  (assoc path :segments
-         [(assoc l/bezier :to [-5 -100] :c1 [-3 -5] :c2 [-25 -90])
+  (path [(assoc l/bezier :to [-5 -100] :c1 [-3 -5] :c2 [-25 -90])
           (assoc l/bezier :from [-5 -100] :to [-60 -200]
                  :c1 [-9 -105] :c2 [-61 -199])
           (assoc l/line :from [-60 -200] :to [0 -250])]))
 
-(l/deftemplate fish
-  {:style {} :base path}
-  (let [[start end] (l/endpoints base)]
-    [base
-     (l/rotate base end -90)
-     (-> base
-         (l/reflect [0 1])
-         (l/scale 0.7071)
-         (l/rotate 45))
-     (-> base
-         (l/rotate end -90)
-         (l/reflect end [1 0])
-         (l/scale 0.7071))
-     ]))
-#_(def fish
-  [top-left
-   bottom-left
-   top-right
-   (-> bottom-left
-       (l/reflect [250 -250] [ 0 1])
-       (l/scale [250 -250] 0.7071)
-       (l/rotate [250 -250] 135))])
+(def b2
+  (path [(assoc l/line  :to [50 60])
+          (assoc l/bezier :from [50 60] :to [150 15]
+                 :c1 [55 64] :c2 [101 54])
+         (assoc l/bezier :from [150 15]  :to [250 0]
+                :c1 [153 30] :c2 [220 10])]))
 
-(def f (assoc fish :base base))
+(defn rotc
+  [[x y]]
+  [(- y) x])
+
+(defn triangluate
+  "Given a path, creates a base tile with the appropriate symmetry.
+  Path is assumed to begin at the origin, and cover the bottom portion of the
+  tiling triangle (goes to the right)."
+  [path]
+  (let [[_ right-v] (l/endpoints path)
+        left-v      (rotc right-v)]
+    [path
+     (-> path
+         (l/reflect right-v [1 0])
+         (l/scale right-v 0.7071)
+         (l/rotate right-v -45))
+     (-> path
+         (l/rotate 90)
+         (l/reflect left-v [0 1])
+         (l/rotate left-v 45)
+         (l/scale left-v 0.7071))
+     (l/rotate path 90)]))
+
+(l/deftemplate tile
+  {:base l/line}
+  ;;TODO:
+  (triangluate base)
+  IT
+  (top-left [_]
+    (rotc (second (l/endpoints base))))
+  (bottom-right [_]
+    (second (l/endpoints base))))
+
+(def f (assoc tile :base b2))
+
+(defn rot45
+  "fn from Henderson's paper"
+  [t]
+  (let [p (top-left t)]
+    (-> t
+        (l/scale p 0.7071)
+        (l/rotate p 45))))
 
 (def f2
   (-> f
+      (rot45)
+      (l/reflect [0 1])
+      (l/translate (bottom-right f))))
+
+(def t
+  [f
+   f2
+   (-> f2
+    (l/rotate 270)
+    (l/translate (top-left f)))])
+
+(def u
+  (-> (map #(l/rotate f (* % 90)) (range 4))
       (l/scale 0.7071)
-      (l/rotate 45)
-      (l/reflect [0 1])))
+      (l/reflect [0 1])
+      (l/rotate 45)))
 
-(def f3
-  (l/rotate f2 270))
-
+;; REVIEW: Notice here that we're bleeding together aspects of the shape with
+;; aspects of the frame. This is because even though f2 is derived geometrically
+;; from f, it is a different kind of thing so far as the runtime is
+;; concerned. You can ask a tile for its corners, but when you transform a tile,
+;; that info gets lost. That's a big problem here.
 
 (def picture
-  [f ;f2 f3
-   ])
+  [u
+   (l/translate t [165 -30])])
 
 
 (defonce host (hosts/default-host {:fullscreen true}))
