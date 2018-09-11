@@ -6,19 +6,19 @@
   :min-lein-version "2.7.1"
 
   :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.9.946"]]
+                 [org.clojure/clojurescript "1.10.238"]]
 
-  :plugins [[lein-figwheel "0.5.14"]
+  :plugins [[lein-figwheel "0.5.16"]
             [lein-cljsbuild "1.1.7" :exclusions [org.clojure/clojure]]]
 
-  :source-paths ["src" "dev" "../lemonade/src"]
+  :source-paths ["src" "dev" "../falloleen/src"]
 
   :main square-limit.core
 
   :cljsbuild
   {:builds
    [{:id           "dev"
-     :source-paths ["src" "../lemonade/src"]
+     :source-paths ["src" "../falloleen/src"]
 
      :figwheel     {:on-jsload "square-limit.core/on-reload"}
 
@@ -32,7 +32,7 @@
                     :preloads             [devtools.preload]}}
 
     {:id           "min"
-     :source-paths ["src" "../lemonade/src"]
+     :source-paths ["src" "../falloleen/src"]
      :compiler     {:output-to      "resources/public/js/compiled/square-limit.js"
                     :asset-path     "js/compiled/out"
                     :main           square-limit.core
@@ -42,20 +42,17 @@
 
   :profiles
   {:dev  {:dependencies  [[net.cgrand/macrovich "0.2.1"]
-                          [quil "2.6.0" :exclusions [[org.clojure/clojure]]]
+                          [quil "2.7.1" :exclusions [[org.clojure/clojure]]]
 
                           [binaryage/devtools "0.9.9"]
-                          [com.cemerick/piggieback "0.2.2"]
-                          [figwheel-sidecar "0.5.14"
-                           :exclusions [org.clojure/core.async]]
-                          [org.clojure/core.async "0.3.465"]
-                          [org.clojure/spec.alpha "0.1.134"]
+                          [cider/piggieback "0.3.1"]
+                          [figwheel-sidecar "0.5.16"]
                           [org.clojure/test.check "0.9.0"]
                           [org.clojure/tools.namespace "0.2.11"]]
           ;; need to add dev source path here to get user.clj loaded
-          :source-paths  ["src" "dev" "../lemonade/src"]
+          :source-paths  ["src" "dev" "../falloleen/src"]
 
-          :repl-options  {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+          :repl-options  {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
           ;; need to add the compliled assets to the :clean-targets
           :clean-targets ^{:protect false} ["resources/public/js/compiled"
                                             :target-path]}})
