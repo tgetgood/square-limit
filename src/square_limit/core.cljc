@@ -20,10 +20,6 @@
     (assoc l/bezier :from [150 15]  :to [250 0]
            :c1 [153 30] :c2 [220 10])]))
 
-(defn rotc
-  [[x y]]
-  [(- y) x])
-
 ;; (defn triangulate
 ;;   "Given a path, creates a base tile with the appropriate symmetry.
 ;;   Path is assumed to begin at the origin, and cover the bottom portion of the
@@ -98,10 +94,30 @@
 ;;      (t (triangulate (assoc l/line :to [250 0])) [0 0] [0 250] [250 0] 8))
 ;;    ])
 
+(defn with-frame [i]
+  [i
+   (l/with-style {:stroke :blue} (l/frame i))])
+
+(defn triangulate [p]
+  [p
+   (l/rotate p 90)
+   (-> p
+       (l/scale :bottom-right 0.7071)
+
+       (l/reflect :bottom-right [1 -1])
+       (l/rotate :bottom-right -45)
+       (l/style {:stroke :red})
+       )
+
+   (-> p
+       (l/rotate 90)
+       (l/scale :top-right 0.7071)
+       )])
+
+
 (def image
-  [(l/with-style {:fill :red} (assoc l/circle :radius 100))
-   b2
-   (l/translate base [300 300])])
+  [(-> (mapv with-frame (triangulate b2))
+     (l/translate [300 300]))])
 
 (defonce host (hosts/default-host {:size :fullscreen}))
 
