@@ -3,7 +3,7 @@
             [falloleen.hosts :as hosts]
             [falloleen.math :as math]))
 
-#?(:cljs (enable-console-print!))
+(enable-console-print!)
 
 (def base
   (l/path
@@ -94,14 +94,20 @@
 ;;      (t (triangulate (assoc l/line :to [250 0])) [0 0] [0 250] [250 0] 8))
 ;;    ])
 
+
 (defn with-frame [i]
   [i
    (l/with-style {:stroke :blue} (l/frame i))])
 
 (defn triangulate [p]
   [p
-   (l/rotate p 90)
+   (-> b2 (l/reflect :top-right [1 -1])
+       )
    (-> p
+       (l/reflect :top-right [1 -1])
+       (l/rotate :top-right 90))
+   #_(l/rotate p 90)
+   #_(-> p
        (l/scale :bottom-right 0.7071)
 
        (l/reflect :bottom-right [1 -1])
@@ -109,20 +115,32 @@
        (l/style {:stroke :red})
        )
 
-   (-> p
+   #_(-> p
        (l/rotate 90)
-       (l/scale :top-right 0.7071)
-       )])
-
+       (l/reflect :top-right [0 1])
+       #_(l/rotate :top-right 0))])
 
 (def image
-  [(-> (mapv with-frame (triangulate b2))
+  [(-> [(mapv with-frame (triangulate b2))
+        (l/with-style {:fill :pink :opacity 0.4}
+          [(assoc l/circle :centre [314 314] :radius 5)
+           (-> l/line
+               (assoc :from [314 314] :to [324 304])
+               )]
+          )]
      (l/translate [300 300]))])
+
+(def c (assoc l/circle :radius 50))
+
+(def i2
+  [(-> [c
+        #_(l/translate c [10 10])]
+       (l/translate [300 100]))])
 
 (defonce host (hosts/default-host {:size :fullscreen}))
 
 (defn ^:export init []
-  (l/draw! image
+  (l/draw! i2
            host))
 
 (defn on-reload []
