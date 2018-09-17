@@ -1,6 +1,7 @@
 (ns square-limit.core
   (:require [falloleen.core :as l]
             [falloleen.hosts :as hosts]
+            [falloleen.lang :as lang]
             [falloleen.math :as math]))
 
 (enable-console-print!)
@@ -38,8 +39,6 @@
 ;;          (l/rotate left-v 45)
 ;;          (l/scale left-v 0.7071))
 ;;      (l/rotate path 90)]))
-
-;; (def r2 (/ 1 (math/sqrt 2)))
 
 ;; (defn t [shape a b c depth]
 ;;   (if (< 0 depth)
@@ -95,52 +94,52 @@
 ;;    ])
 
 
-(defn with-frame [i]
-  [i
-   (l/with-style {:stroke :blue} (l/frame i))])
+(def sqr2 (/ 1 (math/sqrt 2)))
+
+(defn with-frames [xs]
+  (map (fn [x] [x (l/frame x)]) xs))
 
 (defn triangulate [p]
   [p
-   (-> b2 (l/reflect :top-right [1 -1])
-       )
    (-> p
-       (l/reflect :top-right [1 -1])
-       (l/rotate :top-right 90))
-   #_(l/rotate p 90)
-   #_(-> p
-       (l/scale :bottom-right 0.7071)
-
-       (l/reflect :bottom-right [1 -1])
-       (l/rotate :bottom-right -45)
-       (l/style {:stroke :red})
-       )
-
-   #_(-> p
+       (l/rotate :bottom-right 45)
+       (l/reflect :top-right [1 0])
+       (l/scale :bottom-right sqr2))
+   (l/rotate p 90)
+   (-> p
        (l/rotate 90)
-       (l/reflect :top-right [0 1])
-       #_(l/rotate :top-right 0))])
+       (l/scale :top-right sqr2)
+       (l/reflect :right [0 1])
+       (l/rotate :top-left 45))])
+
+(def fish-outline (triangulate b2))
+
+(l/deftemplate fish
+  {:curve b2}
+  (triangulate curve)
+  lang/Framed
+  (frame [this]
+    (let [{:keys [origin width height]} (l/frame curve)]
+      (assoc l/rectangle :origin origin :width width :height width))))
 
 (def image
-  [(-> [(mapv with-frame (triangulate b2))
-        (l/with-style {:fill :pink :opacity 0.4}
-          [(assoc l/circle :centre [314 314] :radius 5)
-           (-> l/line
-               (assoc :from [314 314] :to [324 304])
-               )]
-          )]
+  [(-> [(l/frame fish) fish
+        (l/rotate fish :centre 180)
+        (l/with-style {:fill :red} (l/rotate fish :top-left 90))
+        (l/rotate fish 90)
+        (l/rotate fish 180)
+        (l/rotate fish 270)
+        ;; (l/style (l/frame fish-outline) {:stroke :blue})
+        #_(l/rotate fish-outline :centre 90
+         )]
      (l/translate [300 300]))])
 
-(def c (assoc l/circle :radius 50))
 
-(def i2
-  [(-> [c
-        #_(l/translate c [10 10])]
-       (l/translate [300 100]))])
 
 (defonce host (hosts/default-host {:size :fullscreen}))
 
 (defn ^:export init []
-  (l/draw! i2
+  (l/draw! image
            host))
 
 (defn on-reload []
