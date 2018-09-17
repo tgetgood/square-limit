@@ -119,19 +119,46 @@
   (triangulate curve)
   lang/Framed
   (frame [this]
-    (let [{:keys [origin width height]} (l/frame curve)]
-      (assoc l/rectangle :origin origin :width width :height width))))
+    (let [{:keys [origin width]} (l/frame curve)]
+      (assoc l/rectangle :origin origin :width width :height width)))
+
+  lang/Affine
+  (transform [this xform f]
+    (Fish. (lang/transform curve xform f))))
+
+(defn above [a b]
+  [(l/scale b [1 0.5])
+   (-> a
+       (l/translate [:relative [0 0.5]])
+       (l/scale :bottom-left [1 0.5]))])
+
+(defn beside [a b]
+  [(l/scale a [0.5 1])
+   (-> b
+       (l/translate [:relative [0.5 0]])
+       (l/scale :bottom-right [0.5 1]))])
+
+(defn q [a b c d]
+  (above (beside a b) (beside c d)))
+
+(def fish2
+  (-> fish
+      (l/reflect :centre [0 1])
+      (l/rotate :top-right -45)
+      (l/scale [250 250] sqr2)
+))
+
+(def t
+  [fish
+   fish2
+   (l/rotate fish2 [125 125] 270)])
+
+(def u
+  (map #(l/rotate fish (* % 90)) (range 4)))
 
 (def image
-  [(-> [(l/frame fish) fish
-        (l/rotate fish :centre 180)
-        (l/with-style {:fill :red} (l/rotate fish :top-left 90))
-        (l/rotate fish 90)
-        (l/rotate fish 180)
-        (l/rotate fish 270)
-        ;; (l/style (l/frame fish-outline) {:stroke :blue})
-        #_(l/rotate fish-outline :centre 90
-         )]
+  [(->  (q t t t t)
+        ;; with-frames
      (l/translate [300 300]))])
 
 
