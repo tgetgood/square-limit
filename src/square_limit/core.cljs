@@ -102,9 +102,11 @@
 (defn triangulate [p]
   [p
    (-> p
-       (l/rotate :bottom-right 45)
-       (l/reflect :top-right [1 0])
-       (l/scale :bottom-right sqr2))
+       #_(l/reflect :bottom-right [1 0])
+       (l/scale :bottom-right sqr2)
+       #_(l/rotate :bottom-right -45)
+       #_(l/reflect :top-right [1 0])
+       #_(l/scale :bottom-right sqr2))
    (l/rotate p 90)
    (-> p
        (l/rotate 90)
@@ -117,10 +119,10 @@
 (l/deftemplate fish
   {:curve b2}
   (triangulate curve)
-  lang/Framed
-  (frame [this]
-    (let [{:keys [origin width]} (l/frame curve)]
-      (assoc l/rectangle :origin origin :width width :height width)))
+  lang/Bounded
+  (extent [this]
+    (let [{:keys [origin a]} (l/frame curve)]
+      (l/coordinate-frame origin [0 a] [a 0])))
 
   lang/Affine
   (transform [this xform f]
@@ -157,7 +159,9 @@
   (map #(l/rotate fish (* % 90)) (range 4)))
 
 (def image
-  [(->  (q t t t t)
+  [(->  b2
+        triangulate
+        with-frames
         ;; with-frames
      (l/translate [300 300]))])
 
