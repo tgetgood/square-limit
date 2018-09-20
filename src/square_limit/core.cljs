@@ -115,6 +115,16 @@
 
 (def side2 (q side1 side1 (l/rotate t :centre 90) t))
 
+(declare side)
+
+(defn side* [n]
+  (if (zero? n)
+    blank
+    (let [sn-1 (side (dec n))]
+      (q sn-1 sn-1 (l/rotate t :centre 90) t))))
+
+(def side (memoize side*))
+
 (defn cyc [shape]
   (map #(l/rotate shape (* % 90)) (range 4)))
 
@@ -124,6 +134,15 @@
 
 (def c2 (q c1 side1 (l/rotate side1 :centre 90) u))
 
+(declare corner)
+
+(defn corner [n]
+  (if (zero? n)
+    blank
+    (let [cn-1 (corner (dec n))
+          sn-1 (side (dec n))]
+      (q cn-1 sn-1 (l/rotate sn-1 :centre 90) u))))
+
 (def square-limit2
   (matrix-grid
        [[c2 side2 (l/rotate c2 :centre 270)]
@@ -131,8 +150,16 @@
         [(l/rotate c2 :centre 90) (l/rotate side2 :centre 180)
          (l/rotate c2 :centre 180)]]))
 
+(defn square-limit [n]
+  (let [c (corner n)
+        s (side n)]
+    (matrix-grid
+       [[c s (l/rotate c :centre 270)]
+        [(l/rotate s :centre 90) u (l/rotate s :centre 270)]
+        [(l/rotate c :centre 90) (l/rotate s :centre 180)
+         (l/rotate c :centre 180)]])))
 (def image
-  (-> square-limit2
+  (-> (square-limit 7)
       (l/translate [200 200])))
 
 (defonce host (hosts/default-host {:size :fullscreen}))
