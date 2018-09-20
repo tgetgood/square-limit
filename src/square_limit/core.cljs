@@ -60,17 +60,13 @@
   ([] [])
   ([a b]
    (let [delta (- (top-most (l/frame b)) (bottom-most (l/frame a)))]
-     [b (l/translate a [0 delta])
-      #_(l/with-style {:stroke :blue}
-          [(l/frame b) (l/frame (l/translate a [0 delta]))])])))
+     [b (l/translate a [0 delta])])))
 
 (defn beside
   ([] [])
   ([a b]
    (let [delta (- (right-most (l/frame a)) (left-most (l/frame b)))]
-     [(l/translate b [delta 0]) a
-      #_(l/with-style {:stroke :green}
-          [(l/frame b) (l/frame (l/translate a [delta 0]))])])))
+     [(l/translate b [delta 0]) a])))
 
 (defn matrix-grid
   [m]
@@ -115,6 +111,17 @@
 
 (def side2 (q side1 side1 (l/rotate t :centre 90) t))
 
+(def c1 (q blank blank blank u))
+
+(def c2 (q c1 side1 (l/rotate side1 :centre 90) u))
+
+(def square-limit2
+  (matrix-grid
+       [[c2 side2 (l/rotate c2 :centre 270)]
+        [(l/rotate side2 :centre 90) u (l/rotate side2 :centre 270)]
+        [(l/rotate c2 :centre 90) (l/rotate side2 :centre 180)
+         (l/rotate c2 :centre 180)]]))
+
 (declare side)
 
 (defn side* [n]
@@ -125,30 +132,12 @@
 
 (def side (memoize side*))
 
-(defn cyc [shape]
-  (map #(l/rotate shape (* % 90)) (range 4)))
-
-(def v (cyc t))
-
-(def c1 (q blank blank blank u))
-
-(def c2 (q c1 side1 (l/rotate side1 :centre 90) u))
-
-(declare corner)
-
 (defn corner [n]
   (if (zero? n)
     blank
     (let [cn-1 (corner (dec n))
           sn-1 (side (dec n))]
       (q cn-1 sn-1 (l/rotate sn-1 :centre 90) u))))
-
-(def square-limit2
-  (matrix-grid
-       [[c2 side2 (l/rotate c2 :centre 270)]
-        [(l/rotate side2 :centre 90) u (l/rotate side2 :centre 270)]
-        [(l/rotate c2 :centre 90) (l/rotate side2 :centre 180)
-         (l/rotate c2 :centre 180)]]))
 
 (defn square-limit [n]
   (let [c (corner n)
@@ -159,7 +148,7 @@
         [(l/rotate c :centre 90) (l/rotate s :centre 180)
          (l/rotate c :centre 180)]])))
 (def image
-  (-> (square-limit 7)
+  (-> (square-limit 6)
       (l/translate [200 200])))
 
 (defonce host (hosts/default-host {:size :fullscreen}))
