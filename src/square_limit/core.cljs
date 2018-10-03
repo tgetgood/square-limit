@@ -4,7 +4,7 @@
             [falloleen.lang :as lang]
             [falloleen.math :as math]))
 
-#?(:cljs (enable-console-print!))
+(enable-console-print!)
 
 (def base
   (l/path
@@ -147,11 +147,13 @@
         [(l/rotate s :centre 90) u (l/rotate s :centre 270)]
         [(l/rotate c :centre 90) (l/rotate s :centre 180)
          (l/rotate c :centre 180)]])))
+
 (def image
   (-> (square-limit 6)
       (l/translate [200 200])))
 
-(defonce host (hosts/default-host {}))
+(defonce host (hosts/default-host {:size :fullscreen}))
+
 
 (defn ^:export init []
   (l/draw! image
