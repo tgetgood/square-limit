@@ -1,0 +1,3 @@
+{:deps
+ {macroexpanse/falloleen {:local/root "/home/thomas/projects/falloleen"}}
+ :paths ["src" "resources"]}

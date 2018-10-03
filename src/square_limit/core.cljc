@@ -4,7 +4,7 @@
             [falloleen.lang :as lang]
             [falloleen.math :as math]))
 
-(enable-console-print!)
+#?(:cljs (enable-console-print!))
 
 (def base
   (l/path
