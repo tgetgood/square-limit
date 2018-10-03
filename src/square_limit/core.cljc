@@ -151,7 +151,7 @@
   (-> (square-limit 6)
       (l/translate [200 200])))
 
-(defonce host (hosts/default-host {:size :fullscreen}))
+(defonce host (hosts/default-host {}))
 
 (defn ^:export init []
   (l/draw! image
