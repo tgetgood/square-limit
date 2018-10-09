@@ -1,8 +1,10 @@
-(ns square-limit.core
+(ns ^:figwheel-hooks square-limit.core
   (:require [falloleen.core :as l]
             [falloleen.hosts :as hosts]
             [falloleen.lang :as lang]
-            [falloleen.math :as math]))
+            [falloleen.math :as math]
+            [falloleen.renderer.html-canvas :as html]
+            [falloleen.renderer.jsc :as jsc]))
 
 (enable-console-print!)
 
@@ -149,15 +151,13 @@
          (l/rotate c :centre 180)]])))
 
 (def image
-  (-> (square-limit 6)
+  (-> (square-limit 3)
       (l/translate [200 200])))
 
 (defonce host (hosts/default-host {:size :fullscreen}))
 
-
 (defn ^:export init []
-  (l/draw! image
-           host))
+  (l/draw! image host))
 
-(defn on-reload []
+(defn ^:after-load on-reload []
   (init))

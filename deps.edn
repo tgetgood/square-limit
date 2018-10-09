@@ -1,3 +1,4 @@
 {:deps
- {macroexpanse/falloleen {:local/root "/home/thomas/projects/falloleen"}}
+ {org.clojure/clojurescript {:mvn/version "1.10.339"}
+  macroexpanse/falloleen {:local/root "/home/thomas/projects/falloleen"}}
  :paths ["src" "resources" "target"]}
